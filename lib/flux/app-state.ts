@@ -69,34 +69,12 @@ export const actionMap = new ActionMap({
 
     showAllNotes(state: AppState) {
       return update(state, {
-        tag: { $set: null },
         previousIndex: { $set: -1 },
       });
     },
 
     selectTrash(state: AppState) {
       return update(state, {
-        tag: { $set: null },
-        previousIndex: { $set: -1 },
-      });
-    },
-
-    selectTagAndSelectFirstNote: {
-      creator({ tag }: { tag: T.TagEntity }) {
-        return (dispatch, getState) => {
-          dispatch(this.action('selectTag', { tag }));
-          dispatch(
-            this.action('notesLoaded', {
-              notes: getState().appState.notes,
-            })
-          );
-        };
-      },
-    },
-
-    selectTag(state: AppState, { tag }: { tag: T.TagEntity }) {
-      return update(state, {
-        tag: { $set: tag },
         previousIndex: { $set: -1 },
       });
     },
@@ -148,7 +126,10 @@ export const actionMap = new ActionMap({
         content: string;
       }) {
         return (dispatch, getState: () => State) => {
-          const { appState: state, settings } = getState();
+          const {
+            settings,
+            ui: { openedTag },
+          } = getState();
           const timestamp = new Date().getTime() / 1000;
 
           // insert a new note into the store and select it
@@ -161,9 +142,7 @@ export const actionMap = new ActionMap({
               modificationDate: timestamp,
               shareURL: '',
               publishURL: '',
-              tags: ([] as T.TagName[]).concat(
-                state.tag ? state.tag.data.name : []
-              ),
+              tags: openedTag ? [openedTag.data.name] : [],
             },
             (e, note) => {
               if (e) {
